@@ -1,7 +1,8 @@
-import * as dotenv from 'dotenv';
+const dotenv = require('dotenv');
 dotenv.config();
-import express from 'express';
-import { REST, Routes, Client, GatewayIntentBits } from 'discord.js';
+const express = require('express');
+const { REST, Routes, Client, GatewayIntentBits } = require('discord.js');
+const roll = require('./commands/roll');
 
 const app = express();
 
@@ -22,6 +23,10 @@ const commands = [
         name: 'ping',
         description: 'Replies with Pong!',
     },
+    {
+        name: 'roll',
+        description: 'Rolls a die',
+    },
 ];
 
 const rest = new REST({ version: '10' }).setToken(token);
@@ -40,19 +45,26 @@ const rest = new REST({ version: '10' }).setToken(token);
     }
 })();
 
-const bot = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
-bot.on('ready', () => {
-    console.log(`Logged in as ${bot.user.tag}!`);
+client.on('ready', () => {
+    console.log(`Logged in as ${client.user.tag}!`);
 });
 
-bot.on('interactionCreate', async (interaction) => {
+client.on('interactionCreate', async (interaction) => {
     console.log(interaction);
     if (!interaction.isChatInputCommand()) return;
 
     if (interaction.commandName === 'ping') {
         await interaction.reply('Pong!');
     }
+
+    if (interaction.commandName.match(/roll[0-9]+/)) {
+        const dice =
+            interaction.commandName.match(/roll(<dice>[0-9]+/).groups.dice;
+        const reply = roll(dice);
+        await interaction.reply(reply);
+    }
 });
 
-bot.login(token);
+client.login(token);
